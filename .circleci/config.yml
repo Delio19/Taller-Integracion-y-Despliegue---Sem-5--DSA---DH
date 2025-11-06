@@ -4,31 +4,38 @@ jobs:
   deploy_app_to_railway:
     docker:
       - image: cimg/python:3.10
-    working_directory: ~/project/bankchurn-api
+    working_directory: ~/repo
     steps:
       - checkout
+
       - run:
-          name: Install dependencies
+          name: Ver estructura del repo
           command: |
-            python -m venv venv
-            . venv/bin/activate
+            echo "PWD=$(pwd)"
+            ls -la
+            ls -la bankchurn-api || true
+
+      - run:
+          name: Crear venv e instalar dependencias
+          command: |
+            python -m venv .venv
+            . .venv/bin/activate
             pip install -U pip
-            pip install -r requirements.txt
+            pip install -r bankchurn-api/requirements.txt
+
       - run:
-          name: Install Railway CLI
+          name: Instalar Railway CLI
           command: |
-            curl -fsSL https://railway.app/install.sh | sh
-            echo 'export PATH="$HOME/.railway/bin:$PATH"' >> $BASH_ENV
-            source $BASH_ENV
-            railway -v
+            curl -fsSL https://railway.app/install.sh | sh -s -- --skip-shell
+
       - run:
-          name: Deploy to Railway
+          name: Deploy a Railway (usa tu token de CircleCI)
           command: |
-            source venv/bin/activate
+            . .venv/bin/activate
+            export PATH="$HOME/.railway/bin:$PATH"
             railway up --service=bankchurn-service --detach
 
 workflows:
-  version: 2
   deploy:
     jobs:
       - deploy_app_to_railway
