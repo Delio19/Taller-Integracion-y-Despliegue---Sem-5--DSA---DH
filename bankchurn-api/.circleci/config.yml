@@ -1,0 +1,18 @@
+version: 2.1
+jobs:
+  deploy_app_to_railway:
+    docker:
+      - image: cimg/python:3.10
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: pip install -r bankchurn-api/requirements.txt
+      - run:
+          name: Deploy to Railway
+          command: railway up --service=bankchurn-service
+workflows:
+  version: 2
+  deploy:
+    jobs:
+      - deploy_app_to_railway
