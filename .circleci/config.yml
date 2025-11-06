@@ -1,9 +1,10 @@
 version: 2.1
 
 jobs:
-  build:
+  deploy_app_to_railway:
     docker:
       - image: cimg/python:3.10
+    working_directory: ~/project/bankchurn-api
     steps:
       - checkout
       - run:
@@ -11,17 +12,23 @@ jobs:
           command: |
             python -m venv venv
             . venv/bin/activate
-            pip install --upgrade pip
+            pip install -U pip
             pip install -r requirements.txt
       - run:
-          name: Run tests
+          name: Install Railway CLI
           command: |
-            . venv/bin/activate
-            pytest || echo "No tests found, skipping..."
+            curl -fsSL https://railway.app/install.sh | sh
+            echo 'export PATH="$HOME/.railway/bin:$PATH"' >> $BASH_ENV
+            source $BASH_ENV
+            railway -v
+      - run:
+          name: Deploy to Railway
+          command: |
+            source venv/bin/activate
+            railway up --service=bankchurn-service --detach
 
 workflows:
   version: 2
-  build_and_test:
+  deploy:
     jobs:
-      - build
-
+      - deploy_app_to_railway
